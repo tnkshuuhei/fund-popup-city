@@ -17,15 +17,23 @@
       {
         "name": "next",
       },
+      { 
+        "name": "@0no-co/graphqlsp", 
+        "schema": "./schema.graphql", 
+        "tadaOutputLocation": "./src/graphql-env.d.ts"
+      }
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["./components/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/styles/*": ["./styles/*"],
-      "@/types/*": ["./types/*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/assets/*": ["./assets/*"],
+      // "@/assets/*": ["./assets/*"],
+      // "@/components/*": ["./components/*"],
+      // "@/graphql/*": ["./graphql/*"],
+      // "@/hooks/*": ["./hooks/*"],
+      // "@/marketplace/*": ["./marketplace/*"],
+      // "@/lib/*": ["./lib/*"],
+      // "@/styles/*": ["./styles/*"],
+      // "@/types/*": ["./types/*"],
+      // "@/utils/*": ["./utils/*"],
     },
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

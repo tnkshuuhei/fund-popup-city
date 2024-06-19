@@ -10,7 +10,7 @@ import {
 	filterReports,
 	sortingOptions,
 } from "@/lib/search-filter-utils";
-import type { ISortingOption, Report } from "@/types";
+import type { HypercertData, ISortingOption, Report } from "@/types";
 import Fuse from "fuse.js";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
@@ -18,20 +18,21 @@ import { ShowingDisplay, VDPaginator } from "../global/vd-paginator";
 import { SidebarFilter } from "./filter-sidebar";
 
 interface IPageData {
-	reports: Report[];
+	hypercerts: HypercertData[];
 }
 
-export function ReportsView({ reports }: IPageData) {
+export function ReportsView({ hypercerts }: IPageData) {
 	const { filters, updateSearchParams } = useFilters();
-	const [activeSortOption, setActiveSortOption] = useState(
-		sortingOptions.createdNewestFirst.value,
-	);
-	let filteredReports = useMemo(() => reports, [reports]);
+	// ! Commented out while migrating to HypercertData
+	// const [activeSortOption, setActiveSortOption] = useState(
+	// 	sortingOptions.createdNewestFirst.value,
+	// );
+	let filteredReports = useMemo(() => hypercerts, [hypercerts]);
 	const itemsPerPage = 10;
 
 	const filterOptions = useMemo(() => {
-		return createFilterOptions(reports);
-	}, [reports]);
+		return createFilterOptions(hypercerts);
+	}, [hypercerts]);
 
 	const fuseOptions = useMemo(
 		() => ({
@@ -45,15 +46,15 @@ export function ReportsView({ reports }: IPageData) {
 	);
 
 	const fuse = useMemo(
-		() => new Fuse(reports, fuseOptions),
-		[reports, fuseOptions],
+		() => new Fuse(hypercerts, fuseOptions),
+		[hypercerts, fuseOptions],
 	);
 	if (filters.length > 0) {
-		filteredReports = filterReports(reports, filters, fuse);
+		filteredReports = filterReports(hypercerts, filters, fuse);
 	}
 
 	const sortReports = useCallback(
-		(reports: Report[], sortOption: ISortingOption["value"]) => {
+		(reports: HypercertData[], sortOption: ISortingOption["value"]) => {
 			const sortFn = sortingOptions[sortOption]?.sortFn;
 			if (sortFn) {
 				return [...reports].sort(sortFn);
@@ -63,10 +64,11 @@ export function ReportsView({ reports }: IPageData) {
 		[],
 	);
 
-	filteredReports = useMemo(
-		() => sortReports(filteredReports, activeSortOption),
-		[filteredReports, activeSortOption, sortReports],
-	);
+	// ! Commented out while migrating to HypercertData
+	// filteredReports = useMemo(
+	// 	() => sortReports(filteredReports, activeSortOption),
+	// 	[filteredReports, activeSortOption, sortReports],
+	// );
 
 	const {
 		currentPage,
@@ -74,7 +76,7 @@ export function ReportsView({ reports }: IPageData) {
 		loadPage,
 		maxPage,
 		needsPagination,
-	} = usePagination<Report>(filteredReports, itemsPerPage);
+	} = usePagination<HypercertData>(filteredReports, itemsPerPage);
 
 	const [filterOpen, setFilterOpen] = useState(false);
 
@@ -85,7 +87,7 @@ export function ReportsView({ reports }: IPageData) {
 
 	return (
 		<section
-			className="flex border-t border-t-stone-300 min-[2560px]:w-[64vw] min-[2560px]:grid min-[2560px]:mx-auto min-[2560px]:grid-cols-[380px_1fr]"
+			className="flex border-t border-t-stone-300 min-[2560px]:mx-auto min-[2560px]:grid min-[2560px]:w-[64vw] min-[2560px]:grid-cols-[380px_1fr]"
 			id="discover"
 		>
 			<div className="hidden md:block">
@@ -95,15 +97,15 @@ export function ReportsView({ reports }: IPageData) {
 					filterOptions={filterOptions}
 				/>
 			</div>
-			<section className={"flex-1 py-6 md:py-8 px-3 md:px-8"}>
-				<ReportsHeader
+			<section className="flex-1 px-3 py-6 md:px-8 md:py-8">
+				{/* <ReportsHeader
 					reports={reports}
 					filterOverlayOpen={filterOpen}
 					setFilterOverlayOpen={setFilterOpen}
 					filterOptions={filterOptions}
 					activeSort={activeSortOption}
 					setActiveSort={setActiveSortOption}
-				/>
+				/> */}
 				{filteredReports.length > 0 && (
 					<ShowingDisplay
 						currentPage={currentPage}
@@ -112,25 +114,37 @@ export function ReportsView({ reports }: IPageData) {
 					/>
 				)}
 				<div className="p-3" />
-				<div className="flex gap-3 sm:gap-5 flex-wrap justify-center md:justify-start">
-					{pageTransactions.length ? (
-						pageTransactions.map((report: Report) => (
+				<div className="flex flex-wrap justify-center gap-3 md:justify-start sm:gap-5">
+					{/* {pageTransactions.map((report: Report) => (
+						<ReportCard
+							key={report.hypercertId}
+							slug={report.slug}
+							hypercertId={report.hypercertId}
+							image={report.image}
+							title={report.title}
+							summary={report.summary}
+							category={report.category}
+							state={report.state}
+							totalCost={report.totalCost}
+							fundedSoFar={report.fundedSoFar}
+						/>
+					))} */}
+					{hypercerts.length ? (
+						hypercerts.map((hypercert: HypercertData) => (
 							<ReportCard
-								key={report.hypercertId}
-								slug={report.slug}
-								hypercertId={report.hypercertId}
-								image={report.image}
-								title={report.title}
-								summary={report.summary}
-								category={report.category}
-								state={report.state}
-								totalCost={report.totalCost}
-								fundedSoFar={report.fundedSoFar}
+								key={hypercert.id}
+								slug={hypercert.hypercert_id}
+								hypercertId={hypercert.id}
+								image={hypercert.metadata.image}
+								title={hypercert.metadata.name}
+								summary={hypercert.metadata.description}
+								// totalCost={hypercert.total_cost}
+								// fundedSoFar={hypercert.value}
 							/>
 						))
 					) : (
-						<section className="w-full flex justify-center items-center py-6">
-							<div className="flex flex-col items-center text-center pb-24 md:pb-10">
+						<section className="flex w-full items-center justify-center py-6">
+							<div className="flex flex-col items-center pb-24 text-center md:pb-10">
 								<div className="h-20 w-20">
 									<Image
 										src="/reports_not_found.svg"
@@ -139,7 +153,7 @@ export function ReportsView({ reports }: IPageData) {
 										width={20}
 									/>
 								</div>
-								<p className="text-lg font-bold text-vd-beige-600">
+								<p className="font-bold text-lg text-vd-beige-600">
 									We couldn't find any reports matching your search or filter.
 								</p>
 								<p className="text-vd-beige-600">
@@ -153,7 +167,7 @@ export function ReportsView({ reports }: IPageData) {
 					)}
 				</div>
 				{needsPagination && (
-					<section className="flex flex-col justify-center items-center gap-2">
+					<section className="flex flex-col items-center justify-center gap-2">
 						<VDPaginator
 							needsPagination={needsPagination}
 							currentPage={currentPage}
