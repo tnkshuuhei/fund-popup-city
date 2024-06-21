@@ -1,4 +1,3 @@
-import { MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "../ui/badge";
@@ -10,7 +9,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "../ui/card";
-import { DynamicCategoryIcon } from "../ui/dynamic-category-icon";
 import { Progress } from "../ui/progress";
 
 interface ReportCardProps {
@@ -42,7 +40,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
 			<Card
 				key={hypercertId}
 				// biome-ignore lint/nursery/useSortedClasses: ease-[cubic-bezier(0.76, 0, 0.24, 1)] gets sorted in the wrong way
-				className="w-full rounded-3xl bg-vd-beige-100 text-vd-blue-900 shadow-none transition-transform duration-300 ease-[cubic-bezier(0.76, 0, 0.24, 1)] md:w-[280px] sm:w-[250px] hover:scale-105 hover:shadow-md"
+				className="w-full h-full rounded-3xl bg-vd-beige-100 text-vd-blue-900 shadow-none transition-transform duration-300 ease-[cubic-bezier(0.76, 0, 0.24, 1)] md:w-[280px] sm:w-[250px] hover:scale-105 hover:shadow-md"
 			>
 				<CardHeader className="p-0">
 					<div className="relative h-40 w-full overflow-hidden rounded-t-3xl">
@@ -68,7 +66,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
 						variant="secondary"
 						className="font-normal hover:bg-vd-beige-200 pointer-events-none"
 					>
-						<DynamicCategoryIcon category={category} />
 						<p>{category}</p>
 					</Badge> */}
 					{/* <Badge

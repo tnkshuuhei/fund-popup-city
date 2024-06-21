@@ -1,22 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { useAccount } from "wagmi";
-import { parseClaimOrFractionId } from "@hypercerts-org/sdk";
-
-import { useHypercertClient } from "@/hooks/use-hypercerts-client";
-
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useFetchHypercertFractionsByHypercertId } from "@/components/marketplace/create-fractional-sale-form";
 import { ListForSaleForm } from "@/components/marketplace/list-for-sale-form";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useFetchHypercertFractionsByHypercertId } from "@/components/marketplace/create-fractional-sale-form";
+import { useHypercertClient } from "@/hooks/use-hypercerts-client";
 import { useFetchMarketplaceOrdersForHypercert } from "@/marketplace/hooks";
+import { parseClaimOrFractionId } from "@hypercerts-org/sdk";
+import { useState } from "react";
+import type { Address } from "viem";
+import { useAccount } from "wagmi";
+
+// TODO: Lots of ts-ignores here, need to fix after update Hypercerts SDK
 
 type Props = {
 	hypercertId: string;
@@ -25,6 +26,14 @@ type Props = {
 	onClick?: () => void;
 };
 
+type FractionPlaceholder = {
+	creation_block_timestamp: number;
+	fraction_id: string;
+	last_block_update_timestamp: number;
+	owner_address: Address;
+	units: string;
+	percentage: number;
+};
 export function ListForSaleButton({
 	hypercertId,
 	text = "List for sale",
@@ -68,6 +77,7 @@ export function ListForSaleButton({
 		}
 
 		const fractionsOwnedByUser = fractions.filter(
+			// @ts-ignore
 			(fraction) => fraction.owner_address === address,
 		);
 
@@ -76,12 +86,13 @@ export function ListForSaleButton({
 		}
 
 		const fractionsWithoutOrder = fractionsOwnedByUser.filter(
+			// @ts-ignore
 			(fraction) =>
 				!marketplaceOrders?.find(
 					(order) =>
 						order.itemIds[0] ===
 						// biome-ignore lint/style/noNonNullAssertion: <explanation>
-						parseClaimOrFractionId(fraction.hypercert_id!).id.toString(),
+						parseClaimOrFractionId(fraction.fraction_id!).id.toString(),
 				),
 		);
 
@@ -98,7 +109,7 @@ export function ListForSaleButton({
 		return (
 			<TooltipProvider>
 				<Tooltip>
-					<TooltipTrigger asChild className="cursor-not-allowed">
+					<TooltipTrigger>
 						<div>
 							<Button disabled {...props}>
 								{text}

@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 import { graphql } from "gql.tada";
 import request from "graphql-request";
 
-import { ChevronLeft, MapPin } from "lucide-react";
-import { graphqlEndpoint } from "@/config/graphql";
-import { getContributionsByHCId } from "@/lib/directus";
+import BuyFraction from "@/components/marketplace/buy-fraction";
 import FundingDataWrapper from "@/components/report-details/funding-data-wrapper";
 import FundingProgress from "@/components/report-details/funding-progress";
 import ReportSidebar, {
 	type SidebarData,
 } from "@/components/report-details/report-sidebar";
 import ReportSupportFeed from "@/components/report-details/report-support-feed";
+import { SupportReport } from "@/components/report-details/support/dialog";
 import { Badge } from "@/components/ui/badge";
-import { DynamicCategoryIcon } from "@/components/ui/dynamic-category-icon";
 import { Separator } from "@/components/ui/separator";
+import { graphqlEndpoint } from "@/config/graphql";
 import { fetchReportBySlug } from "@/lib/impact-reports";
 import type { HypercertData, Report } from "@/types";
 import { fetchHypercertById } from "@/utils/supabase/hypercerts";
 import parse from "html-react-parser";
+import { ChevronLeft, MapPin } from "lucide-react";
+import { Suspense } from "react";
 
 interface ReportPageProps {
 	params: { slug: string };
@@ -72,21 +73,6 @@ const getHypercertData = async (slug: string) => {
 		return hypercertData.data;
 	} catch (error) {
 		throw new Error(`Error fetching hypercert data for slug: ${slug}`);
-	}
-};
-
-// Used By CMS Can be removed or refactored
-const getContributionsByHypercertId = async (
-	hypercert_id: Partial<HypercertData>["hypercert_id"],
-) => {
-	if (!hypercert_id) return null;
-	try {
-		const contributionsData = await getContributionsByHCId(hypercert_id);
-		return contributionsData || [];
-	} catch (error) {
-		throw new Error(
-			`Error fetching contributions for hypercertId: ${hypercert_id}`,
-		);
 	}
 };
 
@@ -153,57 +139,70 @@ export default async function ReportPage({ params }: ReportPageProps) {
 							<h1 className="font-bold text-3xl tracking-tight md:text-4xl">
 								{hypercertData.metadata.name}
 							</h1>
-							<ul className="flex flex-wrap items-center gap-1 space-x-3">
+							<ul className="flex flex-wrap items-center gap-2">
 								{hypercertData.metadata.work_scope
 									? hypercertData.metadata.work_scope.map((scope) => (
-											<Badge key={scope}>{scope}</Badge>
+											<Badge
+												className="pointer-events-none hover:bg-vd-beige-200"
+												key={scope}
+											>
+												{scope}
+											</Badge>
 									  ))
 									: null}
-								{/* <Badge className="pointer-events-none hover:bg-vd-beige-200">
-							<DynamicCategoryIcon category={report.category} />
-							<p>{report.category}</p>
-						</Badge>
-						<Badge className="pointer-events-none hover:bg-vd-beige-200">
-							<MapPin color="#C14E41" strokeWidth={1} size={18} />
-							<p>{report.state}</p>
-						</Badge> */}
 							</ul>
 							<div className="-mx-4 -my-4 fixed bottom-[96px] w-full md:relative md:bottom-auto md:mx-0 md:my-0">
 								{/* <FundingDataWrapper
-							hypercertId={report.hypercertId}
-							totalAmount={report.totalCost}
-							fundedAmount={report.fundedSoFar}
-						>
-							<FundingProgress
-								totalAmount={report.totalCost}
-								fundedAmount={report.fundedSoFar}
-								reportInfo={{
-									image: report.image,
-									title: report.title,
-									hypercertId: report.hypercertId,
-								}}
-							/>
-						</FundingDataWrapper> */}
+										hypercertId={report.hypercertId}
+										totalAmount={report.totalCost}
+										fundedAmount={report.fundedSoFar}
+									>
+										<FundingProgress
+											totalAmount={report.totalCost}
+											fundedAmount={report.fundedSoFar}
+											reportInfo={{
+												image: report.image,
+												title: report.title,
+												hypercertId: report.hypercertId,
+											}}
+										/>
+									</FundingDataWrapper> */}
 							</div>
 						</section>
 						<section className="flex flex-col gap-2 pt-8 md:flex-row md:gap-12">
 							<section className="flex flex-col gap-2">
+								{/* // ! Ported from hypercerts-app maybe use maybe not? */}
+								{/* <div className="h-[300px] min-w-[300px] max-w-[500px] lg:h-[350px] lg:min-w-[500px]">
+									<div className="relative h-full w-full overflow-hidden rounded-lg border border-slate-800 bg-black">
+										<Image
+											src={`/api/hypercerts/${slug}/image`}
+											alt={hypercertData?.metadata?.name || ""}
+											fill
+											className="object-contain object-top p-2"
+										/>
+									</div>
+								</div> */}
+								{hypercertData.metadata.image && (
+									<div className="h-[300px] min-w-[300px] max-w-[500px] lg:h-[350px] lg:min-w-[500px]">
+										<div className="relative h-full w-full overflow-hidden rounded-lg border border-slate-800 bg-black">
+											<Image
+												src={hypercertData.metadata.image}
+												alt="Report illustration"
+												className="object-contain object-top p-2"
+												fill
+											/>
+										</div>
+									</div>
+								)}
 								<div>
 									<h3 className="pb-3 font-bold text-2xl">Description</h3>
 									<p className="text-wrap leading-relaxed">
 										{hypercertData.metadata.description}
 									</p>
 								</div>
-								{hypercertData.metadata.image && (
-									<div className="relative h-[358px] w-full overflow-hidden rounded-2xl md:h-[420px]">
-										<Image
-											src={hypercertData.metadata.image}
-											alt="Report illustration"
-											className="-z-10 bg-center object-cover"
-											fill
-										/>
-									</div>
-								)}
+								<Suspense fallback={<div>Loading...</div>}>
+									<BuyFraction hypercertId={slug} />
+								</Suspense>
 							</section>
 							{hypercertData.metadata && (
 								<div>

@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
 
-import React from "react";
+import { StepProcessDialogProvider } from "@/components/global/step-process-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Form,
 	FormControl,
@@ -11,9 +12,6 @@ import {
 	FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
-import { useAccount, useChainId } from "wagmi";
-import { useHypercertClient } from "@/hooks/use-hypercerts-client";
 import {
 	Select,
 	SelectContent,
@@ -21,12 +19,16 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { StepProcessDialogProvider } from "@/components/global/step-process-dialog";
+import { useHypercertClient } from "@/hooks/use-hypercerts-client";
 import {
 	useCreateFractionalMakerAsk,
 	useFetchMarketplaceOrdersForHypercert,
 } from "@/marketplace/hooks";
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import { useAccount, useChainId } from "wagmi";
+
+// TODO: Lots of ts-ignores here, need to fix after update Hypercerts SDK
 
 export interface CreateFractionalOfferFormValues {
 	fractionId: string;
@@ -60,13 +62,18 @@ export const useFetchHypercertFractionsByHypercertId = (
 				(await client.indexer
 					.fractionsByHypercert({ hypercertId })
 					.then((res) =>
-						res?.hypercerts.data?.flatMap((x) => x.fractions?.data),
+						res?.hypercerts.data?.flatMap(
+							// biome-ignore lint/suspicious/noExplicitAny: <Waiting for Hypercerts SDK to be updated>
+							(x: { fractions: { data: any } }) => x.fractions?.data,
+						),
 					)) || [];
 			const totalUnitsForAllFractions = fractions?.reduce(
+				// @ts-ignore
 				(acc, cur) => acc + BigInt(cur?.units),
 				BigInt(0),
 			);
 
+			// @ts-ignore
 			return fractions.map((fraction) => ({
 				...fraction,
 				percentage: Number(
@@ -125,6 +132,7 @@ const CreateFractionalOrderFormInner = ({
 	};
 
 	const yourFractions = fractions.filter(
+		// @ts-ignore
 		(fraction) => fraction.owner_address === address,
 	);
 
@@ -133,8 +141,9 @@ const CreateFractionalOrderFormInner = ({
 		: [];
 
 	const yourFractionsWithoutActiveOrder = yourFractions.filter(
+		// @ts-ignore
 		// biome-ignore lint/style/noNonNullAssertion: <explanation>
-		(fraction) => !fractionsWithActiveOrder.includes(fraction.hypercert_id!),
+		(fraction) => !fractionsWithActiveOrder.includes(fraction.fraction_id!),
 	);
 
 	const hasFractionsWithoutActiveOrder =
@@ -167,13 +176,14 @@ const CreateFractionalOrderFormInner = ({
 														<SelectValue placeholder="Fraction" />
 													</SelectTrigger>
 													<SelectContent>
+														{/* @ts-ignore */}
 														{yourFractionsWithoutActiveOrder.map((fraction) => (
 															<SelectItem
-																key={fraction.hypercert_id}
+																key={fraction.fraction_id}
 																// biome-ignore lint/style/noNonNullAssertion: <explanation>
-																value={fraction.hypercert_id!}
+																value={fraction.fraction_id!}
 															>
-																{fraction.hypercert_id}
+																{fraction.fraction_id}
 															</SelectItem>
 														))}
 													</SelectContent>
