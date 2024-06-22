@@ -42,9 +42,9 @@ async function BuyFraction({ hypercertId }: { hypercertId: string }) {
 		);
 	}
 
-	const { unitAmount, maxUnitsToBuy } = parseAdditionalParameters(
-		orders[0].additionalParameters as Address,
-	);
+	// const { unitAmount, maxUnitsToBuy } = parseAdditionalParameters(
+	// 	orders[0].additionalParameters as Address,
+	// );
 	// console.log("Orders Data:", data);
 	return (
 		<Card className="max-w-[500px] bg-vd-beige-100 shadow-none">
@@ -64,19 +64,17 @@ async function BuyFraction({ hypercertId }: { hypercertId: string }) {
 						{formatEther(BigInt(orders[0].price))} ETH
 					</data>
 				</div>
-				<div className="flex items-end justify-between">
+				{/* <div className="flex items-end justify-between">
 					<p className="font-bold text-sm">Min units to buy:</p>
 					<data className="text-xs">{unitAmount}</data>
 				</div>
 				<div className="flex items-end justify-between">
 					<p className="font-bold text-sm">Max units to buy:</p>
 					<data className="text-xs">{maxUnitsToBuy}</data>
-				</div>
+				</div> */}
 			</CardContent>
 			<CardFooter className="flex justify-end">
-				<Button variant="outline" className="w-28">
-					Buy
-				</Button>
+				<Button className="w-28">Buy</Button>
 			</CardFooter>
 			{/* <SupportReport hypercertId={hypercertId} image={image} title={name} /> */}
 		</Card>
