@@ -5,34 +5,14 @@ import hero from "@/assets/EdgeEsmeraldaHero.webp";
 import noReportsImage from "@/assets/history-bg.svg";
 
 import { ReportsView } from "@/components/reports/reports-view";
-import VoicedeckStats from "@/components/reports/voicedeck-stats";
 import { siteConfig } from "@/config/site";
 import { FilterProvider } from "@/contexts/filter";
-import { fetchReports } from "@/lib/impact-reports";
-import type { Report } from "@/types";
+import type { Hypercert, Report } from "@/types";
 import { fetchHypercerts } from "@/utils/supabase/hypercerts";
-import { createClient } from "@/utils/supabase/server";
 
 export const fetchCache = "force-no-store";
 
 export default async function ReportsPage() {
-	// let uniqueReports: Report[];
-	// let numOfContributors: number;
-	// try {
-	// 	const reports: Report[] = await fetchReports();
-	// 	uniqueReports = reports.reduce((acc, report) => {
-	// 		const reportExists = acc.find((r) => r.cmsId === report.cmsId);
-	// 		if (!reportExists) {
-	// 			acc.push(report);
-	// 		}
-	// 		return acc;
-	// 	}, [] as Report[]);
-	// 	numOfContributors = await getNumberOfContributors();
-	// } catch (error) {
-	// 	console.error("Failed to fetch reports:", error);
-	// 	throw new Error("Failed to fetch reports");
-	// }
-
 	const { data, error } = await fetchHypercerts();
 	console.log("SUPABASE TEST", data);
 	console.log("SUPABASE Error", error);
@@ -72,7 +52,8 @@ export default async function ReportsPage() {
 
 			{data?.length ? (
 				<FilterProvider>
-					<ReportsView hypercerts={data} />
+					{/* TODO: Types return from API have a lot of nulls, need to figure out how to handle that */}
+					<ReportsView hypercerts={data as Hypercert[]} />
 				</FilterProvider>
 			) : (
 				<section className="flex w-full flex-col items-center gap-4 pt-6 pb-24 md:pb-6">
