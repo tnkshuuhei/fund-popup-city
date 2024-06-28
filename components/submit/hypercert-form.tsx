@@ -3,13 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { cn, isValidEthereumAddress } from "@/lib/utils";
 
-import { HypercertCard } from "@/components/submit/hypercert-card";
+import HypercertCard from "@/components/submit/hypercert-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,9 +38,10 @@ import {
 	formatHypercertData,
 } from "@hypercerts-org/sdk";
 
+import useMintHypercert from "@/hooks/use-mint-hypercert";
+import { toPng } from "html-to-image";
 import { Dialog } from "../ui/dialog";
 import { HypercertMintDialog } from "./hypercert-mint-dialog";
-import useMintHypercert from "@/hooks/use-mint-hypercert";
 
 const telegramHandleRegex = /^@([a-zA-Z0-9_]{4,31})$/;
 const emailRegex =
@@ -50,14 +51,17 @@ const HypercertMintSchema = z.object({
 	title: z
 		.string()
 		.min(1, { message: "Hypercert Name is required" })
-		.max(50, { message: "Hypercert Name must be less than 50 characters" }),
+		.max(100, { message: "Hypercert Name must be less than 50 characters" }),
 	description: z
 		.string()
 		.min(10, {
 			message: "Description is required and must be at least 10 characters",
 		})
 		.max(500, { message: "Description must be less than 500 characters" }),
-	link: z.string().url({ message: "Link must be a valid URL" }),
+	link: z.preprocess(
+		(value) => (value === "" ? undefined : value),
+		z.string().url().optional(),
+	),
 	logo: z.string().url({ message: "Logo Image must be a valid URL" }),
 	banner: z
 		.string()
@@ -115,22 +119,18 @@ const HypercertForm = () => {
 	const [openMintDialog, setOpenMintDialog] = useState(false);
 	const {
 		isMintLoading,
-		isMintPending,
 		isMintSuccess,
 		isMintError,
 		mintData,
 		mintError,
-		isReceiptPending,
 		isReceiptLoading,
 		isReceiptSuccess,
 		isReceiptError,
 		receiptData,
 		receiptError,
 		isGoogleSheetsLoading,
-		isGoogleSheetsPending,
 		isGoogleSheetsSuccess,
 		isGoogleSheetsError,
-		googleSheetsData,
 		googleSheetsError,
 		metaData,
 		setMetaData,
@@ -170,54 +170,69 @@ const HypercertForm = () => {
 		}
 	}, [tags]);
 
-	const onSubmit = async (values: MintingFormValues) => {
-		const image = await exportAsImage(imageRef);
-		if (!image) {
-			// throw Error with toast for user
+	const generateImage = async () => {
+		if (imageRef.current === null) {
 			return;
 		}
-
-		const metadata: HypercertMetadata = {
-			name: values.title,
-			description: values.description,
-			image: image,
-			external_url: values.link,
-		};
-
-		const formattedMetadata = formatHypercertData({
-			...metadata,
-			version: "2.0",
-			properties: [],
-			impactScope: ["all"],
-			excludedImpactScope: [],
-			workScope: badges,
-			excludedWorkScope: [],
-			rights: ["Public Display"],
-			excludedRights: [],
-			workTimeframeStart: values.projectDates.workStartDate.getTime() / 1000,
-			workTimeframeEnd: values.projectDates.workEndDate.getTime() / 1000,
-			impactTimeframeStart: values.projectDates.workStartDate.getTime() / 1000,
-			impactTimeframeEnd: values.projectDates.workEndDate.getTime() / 1000,
-			contributors: values.contributors,
+		const dataUrl = await toPng(imageRef.current, {
+			cacheBust: true,
+			fetchRequestInit: { mode: "cors" },
 		});
-
-		if (!formattedMetadata.valid || !formattedMetadata.data) {
-			console.log("Invalid metadata");
-			return;
-		}
-
-		console.log("formattedMetadata", formattedMetadata);
-
-		setMetaData(formattedMetadata.data);
-		setOpenMintDialog(true);
+		return dataUrl;
 	};
+
+	const onSubmit = useCallback(
+		async (values: MintingFormValues) => {
+			const image = await exportAsImage(imageRef);
+			if (!image) {
+				// throw Error with toast for user
+				return;
+			}
+
+			const metadata: HypercertMetadata = {
+				name: values.title,
+				description: values.description,
+				image: image,
+				external_url: values.link,
+			};
+
+			const formattedMetadata = formatHypercertData({
+				...metadata,
+				version: "2.0",
+				properties: [],
+				impactScope: ["all"],
+				excludedImpactScope: [],
+				workScope: badges,
+				excludedWorkScope: [],
+				rights: ["Public Display"],
+				excludedRights: [],
+				workTimeframeStart: values.projectDates.workStartDate.getTime() / 1000,
+				workTimeframeEnd: values.projectDates.workEndDate.getTime() / 1000,
+				impactTimeframeStart:
+					values.projectDates.workStartDate.getTime() / 1000,
+				impactTimeframeEnd: values.projectDates.workEndDate.getTime() / 1000,
+				contributors: values.contributors,
+			});
+
+			if (!formattedMetadata.valid || !formattedMetadata.data) {
+				console.log("Invalid metadata");
+				return;
+			}
+
+			console.log("formattedMetadata", formattedMetadata);
+
+			setMetaData(formattedMetadata.data);
+			setOpenMintDialog(true);
+		},
+		[badges, setMetaData],
+	);
 
 	return (
 		<Dialog open={openMintDialog} onOpenChange={setOpenMintDialog}>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)}>
 					<div className="flex gap-4">
-						<Card className="rounded-3xl border-none bg-vd-beige-100 py-4 shadow-none">
+						<Card className="rounded-3xl py-4 shadow-none">
 							<CardContent className="flex flex-col gap-4">
 								<h2 className="text-2xl">General Fields</h2>
 								<FormField
@@ -244,6 +259,7 @@ const HypercertForm = () => {
 											<FormLabel>Logo Image</FormLabel>
 											<FormControl>
 												<Input
+													disabled
 													placeholder="https://i.imgur.com/hypercert-logo.png"
 													{...field}
 												/>
@@ -261,6 +277,7 @@ const HypercertForm = () => {
 											<FormLabel>Background Banner Image</FormLabel>
 											<FormControl>
 												<Input
+													disabled
 													placeholder="https://i.imgur.com/hypercert-banner.png"
 													{...field}
 												/>
@@ -501,12 +518,12 @@ const HypercertForm = () => {
 						</Card>
 						<div>
 							<HypercertCard
-								title={form.getValues().title || undefined}
-								description={form.getValues().description || undefined}
-								banner={form.getValues().banner || undefined}
-								logo={form.getValues().logo || undefined}
-								workStartDate={form.getValues().projectDates.workStartDate}
-								workEndDate={form.getValues().projectDates.workEndDate}
+								title={form.watch("title") || undefined}
+								description={form.watch("description") || undefined}
+								banner={form.watch("banner") || undefined}
+								logo={form.watch("logo") || undefined}
+								workStartDate={form.watch("projectDates.workStartDate")}
+								workEndDate={form.watch("projectDates.workEndDate")}
 								badges={badges}
 								displayOnly={true}
 								ref={imageRef}
