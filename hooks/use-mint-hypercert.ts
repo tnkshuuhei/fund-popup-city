@@ -1,53 +1,60 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useHypercertClient } from "@/hooks/use-hypercerts-client";
 import { usePublicClient, useWaitForTransactionReceipt } from "wagmi";
 
 import {
 	type HypercertMetadata,
-	HypercertMinterAbi,
 	TransferRestrictions,
 } from "@hypercerts-org/sdk";
 import { parseEther, type TransactionReceipt } from "viem";
-import { useMemo, useState } from "react";
-import { postHypercertId } from "@/utils/google/postHypercertId";
+import { useEffect, useState } from "react";
 import { constructHypercertIdFromReceipt } from "@/utils/constructHypercertIdFromReceipt";
-import { useAddHypercertIdToGoogleSheet } from "./use-add-hypercert-id-to-google-sheets";
+import { useSendEmailAndUpdateGoogle } from "./use-send-email-and-update-google";
+
+type Payload = {
+	metaData: HypercertMetadata;
+	contactInfo: string;
+	amount: string;
+};
 
 const useMintHypercert = () => {
+	const [contactInfo, setContactInfo] = useState<string>("");
 	const [metaData, setMetaData] = useState<HypercertMetadata | undefined>();
 	const { client } = useHypercertClient();
+	const publicClient = usePublicClient();
 
 	if (!client) {
 		throw new Error("Hypercert Client is not initialized");
 	}
 
-	const publicClient = usePublicClient();
 	if (!publicClient) {
 		throw new Error("Public client is not initialized");
 	}
 
 	const {
+		mutate: mintHypercert,
 		data: mintData,
-		isLoading: isMintLoading,
+		status: mintStatus,
+		isIdle: isMintIdle,
 		isPending: isMintPending,
 		isSuccess: isMintSuccess,
 		isError: isMintError,
 		error: mintError,
-	} = useQuery({
-		queryKey: ["hypercert", { metaData }],
-		queryFn: async () => {
-			if (!metaData) {
-				throw new Error("Metadata is null");
-			}
-			return await client.mintClaim(
+	} = useMutation({
+		mutationFn: (payload: Payload) => {
+			const { metaData, contactInfo, amount } = payload;
+			console.log("contactInfo", contactInfo);
+			console.log("amount", amount);
+			setContactInfo(contactInfo);
+			return client.mintClaim(
 				metaData,
 				parseEther("1"),
 				TransferRestrictions.FromCreatorOnly,
 			);
 		},
-		staleTime: Number.POSITIVE_INFINITY,
-		enabled: !!metaData,
 	});
+
+	console.log("mintData", mintData);
 
 	const {
 		data: receiptData,
@@ -58,25 +65,43 @@ const useMintHypercert = () => {
 		error: receiptError,
 	} = useWaitForTransactionReceipt({
 		hash: mintData,
-		query: { enabled: !!mintData },
+		query: {
+			enabled: !!mintData,
+			select: (data) => {
+				const hypercertId = constructHypercertIdFromReceipt(
+					data as TransactionReceipt,
+					publicClient.chain.id,
+				);
+				return {
+					...data,
+					hypercertId,
+				};
+			},
+			staleTime: Number.POSITIVE_INFINITY,
+		},
 	});
 
-	const hypercertId = constructHypercertIdFromReceipt(
-		receiptData as TransactionReceipt,
-		publicClient.chain.id,
-	);
-
+	// TODO: Update these values to better reflect the hook
 	const {
 		data: googleSheetsData,
-		isLoading: isGoogleSheetsLoading,
-		isPending: isGoogleSheetsPending,
-		isSuccess: isGoogleSheetsSuccess,
-		isError: isGoogleSheetsError,
+		mutate: sendEmailAndUpdateGoogle,
+		status: googleSheetsStatus,
 		error: googleSheetsError,
-	} = useAddHypercertIdToGoogleSheet(hypercertId);
+	} = useSendEmailAndUpdateGoogle();
+
+	useEffect(() => {
+		if (receiptData?.hypercertId && contactInfo) {
+			sendEmailAndUpdateGoogle({
+				hypercertId: receiptData.hypercertId,
+				contactInfo,
+			});
+		}
+	}, [receiptData?.hypercertId, contactInfo, sendEmailAndUpdateGoogle]);
 
 	return {
-		isMintLoading,
+		mintHypercert,
+		mintStatus,
+		isMintIdle,
 		isMintPending,
 		isMintSuccess,
 		isMintError,
@@ -89,11 +114,8 @@ const useMintHypercert = () => {
 		isReceiptSuccess,
 		isReceiptError,
 		googleSheetsData,
+		googleSheetsStatus,
 		googleSheetsError,
-		isGoogleSheetsLoading,
-		isGoogleSheetsPending,
-		isGoogleSheetsSuccess,
-		isGoogleSheetsError,
 		metaData,
 		setMetaData,
 	};

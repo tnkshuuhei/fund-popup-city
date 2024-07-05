@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, min } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -18,7 +18,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -32,7 +31,6 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { exportAsImage } from "@/lib/exportToImage";
 import {
 	type HypercertMetadata,
 	formatHypercertData,
@@ -118,9 +116,8 @@ const HypercertForm = () => {
 	const [badges, setBadges] = useState(["Edge Esmeralda", "Edge City"]);
 	const [openMintDialog, setOpenMintDialog] = useState(false);
 	const {
-		isMintLoading,
-		isMintSuccess,
-		isMintError,
+		mintHypercert,
+		mintStatus,
 		mintData,
 		mintError,
 		isReceiptLoading,
@@ -128,12 +125,8 @@ const HypercertForm = () => {
 		isReceiptError,
 		receiptData,
 		receiptError,
-		isGoogleSheetsLoading,
-		isGoogleSheetsSuccess,
-		isGoogleSheetsError,
+		googleSheetsStatus,
 		googleSheetsError,
-		metaData,
-		setMetaData,
 	} = useMintHypercert();
 
 	const form = useForm<MintingFormValues>({
@@ -183,7 +176,8 @@ const HypercertForm = () => {
 
 	const onSubmit = useCallback(
 		async (values: MintingFormValues) => {
-			const image = await exportAsImage(imageRef);
+			// const image = await exportAsImage(imageRef);
+			const image = await generateImage();
 			if (!image) {
 				// throw Error with toast for user
 				return;
@@ -221,11 +215,20 @@ const HypercertForm = () => {
 
 			console.log("formattedMetadata", formattedMetadata);
 
-			setMetaData(formattedMetadata.data);
+			mintHypercert({
+				metaData: formattedMetadata.data,
+				contactInfo: values.contact,
+				amount: "1",
+			});
 			setOpenMintDialog(true);
 		},
-		[badges, setMetaData],
+		[badges, mintHypercert, generateImage],
 	);
+
+	const testData = {
+		hypercertId: "0x1",
+		contactInfo: "test@test.com",
+	};
 
 	return (
 		<Dialog open={openMintDialog} onOpenChange={setOpenMintDialog}>
@@ -336,8 +339,14 @@ const HypercertForm = () => {
 											</FormControl>
 											<FormMessage />
 											<div className="flex flex-wrap gap-0.5">
-												{badges.map((tag) => (
-													<Badge key={tag} variant="secondary">
+												{badges.map((tag, index) => (
+													<Badge
+														key={`${tag}-${
+															// biome-ignore lint/suspicious/noArrayIndexKey: tags are not unique and could be duplicated
+															index
+														}`}
+														variant="secondary"
+													>
 														{tag}
 													</Badge>
 												))}
@@ -532,27 +541,19 @@ const HypercertForm = () => {
 					</div>
 				</form>
 			</Form>
-			{metaData && (
-				<HypercertMintDialog
-					isMintLoading={isMintLoading}
-					isMintSuccess={isMintSuccess}
-					isMintError={isMintError}
-					mintData={mintData}
-					mintError={mintError}
-					isReceiptLoading={isReceiptLoading}
-					isReceiptSuccess={isReceiptSuccess}
-					isReceiptError={isReceiptError}
-					receiptError={receiptError}
-					receiptData={receiptData}
-					isGoogleSheetsLoading={isGoogleSheetsLoading}
-					isGoogleSheetsSuccess={isGoogleSheetsSuccess}
-					isGoogleSheetsError={isGoogleSheetsError}
-					googleSheetsError={googleSheetsError}
-					metaData={metaData}
-					setMetaData={setMetaData}
-					setOpenMintDialog={setOpenMintDialog}
-				/>
-			)}
+			<HypercertMintDialog
+				mintStatus={mintStatus}
+				mintData={mintData}
+				mintError={mintError}
+				isReceiptLoading={isReceiptLoading}
+				isReceiptSuccess={isReceiptSuccess}
+				isReceiptError={isReceiptError}
+				receiptError={receiptError}
+				receiptData={receiptData}
+				googleSheetsStatus={googleSheetsStatus}
+				googleSheetsError={googleSheetsError}
+				setOpenMintDialog={setOpenMintDialog}
+			/>
 		</Dialog>
 	);
 };
