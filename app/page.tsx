@@ -7,7 +7,7 @@ import noReportsImage from "@/assets/history-bg.svg";
 import { ReportsView } from "@/components/reports/reports-view";
 import { siteConfig } from "@/config/site";
 import { FilterProvider } from "@/contexts/filter";
-import type { Hypercert, Report } from "@/types";
+import type { Hypercert } from "@/types";
 import { fetchHypercerts } from "@/utils/supabase/hypercerts";
 
 export const fetchCache = "force-no-store";
