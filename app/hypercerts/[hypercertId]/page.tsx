@@ -1,15 +1,13 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import MapRenderer from "@/components/map-renderer";
 import BuyFraction from "@/components/marketplace/buy-fraction";
 import ReportSidebar, {
 	type SidebarData,
 } from "@/components/report-details/report-sidebar";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getHypercertByHypercertId } from "@/hypercerts/getHypercertByHypercertId";
-import parse from "html-react-parser";
 import { ChevronLeft } from "lucide-react";
 import { Suspense } from "react";
 
@@ -17,27 +15,9 @@ interface ReportPageProps {
 	params: { hypercertId: string };
 }
 
-// export async function generateMetadata({
-// 	params,
-// }: ReportPageProps): Promise<Metadata> {
-// 	const report = await getHypercertData(params.slug);
-// const metadata: Metadata = {
-// 	title: report.title,
-// 	description: report.summary,
-// 	openGraph: {
-// 		title: report.title,
-// 		description: report.summary,
-// 		images: report.image ? [{ url: report.image }] : [],
-// 	},
-// };
-// return metadata;
-// }
-
 export default async function ReportPage({ params }: ReportPageProps) {
 	const { hypercertId } = params;
-	// const hypercertData = await getHypercertData(slug);
 	const hypercertData = await getHypercertByHypercertId(hypercertId);
-	console.log("report", hypercertData);
 
 	if (hypercertData instanceof Error) {
 		return <div>No hypercert found</div>;
@@ -46,12 +26,9 @@ export default async function ReportPage({ params }: ReportPageProps) {
 	if (!hypercertData || !hypercertData.metadata) {
 		return <div>No hypercert data found</div>;
 	}
-	// ! Below was used by CMS, can be removed or refactored
-	// const contributions = await getContributionsByHypercertId(
-	// 	report.hypercert_id,
-	// );
-	// const htmlParsedStory = report.story ? parse(report.story) : null;
-	// console.log({ report });
+
+	console.log("report", hypercertData);
+
 	return (
 		<main className="flex h-svh flex-col justify-between pt-6 md:h-fit md:px-12">
 			{/* 192px is added to account for the funding progress on mobile */}
@@ -87,17 +64,6 @@ export default async function ReportPage({ params }: ReportPageProps) {
 						</section>
 						<section className="flex flex-col gap-2 pt-2 md:flex-row md:gap-12">
 							<section className="flex flex-col gap-4">
-								{/* // ! Ported from hypercerts-app maybe use maybe not? */}
-								{/* <div className="h-[300px] min-w-[300px] max-w-[500px] lg:h-[350px] lg:min-w-[500px]">
-									<div className="relative h-full w-full overflow-hidden rounded-lg border border-slate-800 bg-black">
-										<Image
-											src={`/api/hypercerts/${hypercertId}/image`}
-											alt={hypercertData?.metadata?.name || ""}
-											fill
-											className="object-contain object-top p-2"
-										/>
-									</div>
-								</div> */}
 								{hypercertData.metadata.image && (
 									<div className="h-[300px] min-w-[300px] lg:h-[350px] lg:min-w-[500px]">
 										<div className="relative h-full w-full overflow-hidden rounded-lg border border-slate-800 bg-black">
@@ -126,6 +92,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
 									<ReportSidebar
 										metadata={hypercertData.metadata as SidebarData}
 										hypercert_id={hypercertId}
+										uri={hypercertData.uri ?? undefined}
 									/>
 								</div>
 							)}
@@ -136,7 +103,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
 					<div>
 						<Separator className="my-6 block bg-stone-300 md:hidden" />
 						<ReportSupportFeed contributions={contributions} />
-					</div> 
+					</div>
 				)}
 					*/}
 			</div>

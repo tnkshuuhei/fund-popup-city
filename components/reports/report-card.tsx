@@ -2,7 +2,6 @@ import { calculateBigIntPercentage } from "@/lib/calculateBigIntPercentage";
 import { type SupportedChainIdType, supportedChains } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
-import { formatEther } from "viem";
 
 import { Separator } from "../ui/separator";
 
@@ -11,7 +10,6 @@ export interface ExploreHypercertCardProps {
 	name: string;
 	image: string;
 	totalUnitsForSale?: bigint;
-	lowestAvailablePrice?: bigint;
 	units: bigint;
 	chain_id: SupportedChainIdType;
 }
@@ -21,7 +19,6 @@ const ReportCard: React.FC<ExploreHypercertCardProps> = ({
 	name,
 	image,
 	totalUnitsForSale,
-	lowestAvailablePrice,
 	units,
 	chain_id,
 }) => {
@@ -30,7 +27,7 @@ const ReportCard: React.FC<ExploreHypercertCardProps> = ({
 	};
 	const percentAvailable = calculateBigIntPercentage(units, totalUnitsForSale);
 	return (
-		<Link href={`/${hypercert_id}`} passHref>
+		<Link href={`/hypercerts/${hypercert_id}`} passHref>
 			<article className="hover:-translate-y-2 group relative overflow-hidden rounded-lg bg-black/10 transition-transform duration-300">
 				<div className="h-[320px] min-w-[300px] max-w-[320px]">
 					<div className="relative h-full w-full">
@@ -65,15 +62,6 @@ const ReportCard: React.FC<ExploreHypercertCardProps> = ({
 						<section>
 							<h6 className="opacity-70">for sale</h6>
 							<p> {percentAvailable ? `${percentAvailable}%` : "--"}</p>
-						</section>
-						<section>
-							<h6 className="text-end opacity-70">lowest per %</h6>
-							<p className="font-medium">
-								{lowestAvailablePrice
-									? formatEther(lowestAvailablePrice)
-									: "--"}{" "}
-								ETH
-							</p>
 						</section>
 					</section>
 				</section>

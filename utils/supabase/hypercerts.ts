@@ -1,15 +1,17 @@
-import type { HypercertData } from "@/types";
-import { createClient } from "./server";
-import type { Error as PostgresError } from "postgres";
-import { getHypercertIds } from "../google/getHypercertIds";
-import { graphql } from "gql.tada";
-import { HYPERCERTS_API_URL } from "@/config/graphql";
+import {HYPERCERTS_API_URL} from "@/config/graphql";
 import request from "graphql-request";
-import { getHypercertsByHypercertIdQuery } from "@/graphql/queries";
+import {getHyperboardsByIdQuery, getHypercertsByHypercertIdQuery,} from "@/graphql/queries";
 
 export const fetchHypercerts = async () => {
 	try {
-		const hypercertIds = await getHypercertIds();
+        const res = await request(HYPERCERTS_API_URL, getHyperboardsByIdQuery, {
+            id: "8afa9360-608c-412a-a215-5762ae3beacc",
+        });
+		// const hypercertIds = await getHypercertIds();
+		const hypercertIds =
+			res.hyperboards?.data?.[0]?.sections?.data?.[0]?.entries.map(
+				(entry) => entry.id,
+			);
 		if (!hypercertIds) {
 			const errorMessage = "No hypercert IDs found (status code: 404)";
 			throw new Error(errorMessage);

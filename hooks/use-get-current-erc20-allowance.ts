@@ -3,6 +3,7 @@ import { asDeployedChain, deployments } from "@hypercerts-org/contracts";
 import {
   WETHAbi,
   addressesByNetwork,
+    currenciesByNetwork,
   utils,
 } from "@hypercerts-org/marketplace-sdk";
 import { sepolia } from "viem/chains";
@@ -13,7 +14,7 @@ export const useGetCurrentERC20Allowance = () => {
   const hypercertsExchangeAddress =
     deployments[asDeployedChain(chainId ?? sepolia.id)].HypercertExchange;
   const wethAddress =
-    addressesByNetwork[utils.asDeployedChain(chainId ?? sepolia.id)].WETH;
+      currenciesByNetwork[utils.asDeployedChain(chainId ?? sepolia.id)].WETH.address;
   const { data } = useReadContract({
     abi: WETHAbi,
     address: wethAddress as `0x${string}`,

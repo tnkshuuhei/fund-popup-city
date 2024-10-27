@@ -1,5 +1,4 @@
 import { ResultOf, graphql } from "gql.tada";
-import { HypercertFullFragment } from "@/hypercerts/fragments/hypercert-full.fragment";
 
 export const getHypercertsByHypercertIdQuery = graphql(`
   query GetHypercertByHypercertId($hypercert_id: String!) {
@@ -8,12 +7,12 @@ export const getHypercertsByHypercertIdQuery = graphql(`
         creator_address
         hypercert_id
         units
+        uri
         contract {
           chain_id
         }
         orders {
           totalUnitsForSale
-          lowestAvailablePrice
         }
         metadata {
           allow_list_uri
@@ -26,6 +25,7 @@ export const getHypercertsByHypercertIdQuery = graphql(`
           work_timeframe_to
           work_scope
           name
+          properties
         }
       }
     }
@@ -61,6 +61,7 @@ export const hypercertsByCreatorQuery = graphql(`
           contributors
           work_timeframe_from
           work_timeframe_to
+          properties
         }
       }
     }
@@ -95,3 +96,54 @@ export const getFractionsByOwnerQuery = graphql(`
 `);
 
 export type GetFractionsByOwner = ResultOf<typeof getFractionsByOwnerQuery>;
+
+// {
+//     hyperboards(where: {admin_id: {eq: ""}}) {
+//     data {
+//         sections {
+//             data {
+//                 entries {
+//                     id
+//                 }
+//             }
+//         }
+//         id
+//     }
+// }
+// }
+
+export const getHyperboardsByAdminQuery = graphql(
+    `
+        query GetHyperboardsByAdmin($admin_id: String!) {
+            hyperboards(where: {admin_id: {eq: $admin_id}}) {
+                data {
+                    sections {
+                        data {
+                            entries {
+                                id
+                            }
+                        }
+                    }
+                    id
+                }
+            }
+        }`
+)
+
+export const getHyperboardsByIdQuery = graphql(
+        `
+        query GetHyperboardsById($id: UUID!) {
+            hyperboards(where: {id: {eq: $id}}) {
+                data {
+                    sections {
+                        data {
+                            entries {
+                                id
+                            }
+                        }
+                    }
+                    id
+                }
+            }
+        }`
+)
