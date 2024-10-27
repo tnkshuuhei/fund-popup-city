@@ -1,5 +1,4 @@
 import { ResultOf, graphql } from "gql.tada";
-import { HypercertFullFragment } from "@/hypercerts/fragments/hypercert-full.fragment";
 
 export const getHypercertsByHypercertIdQuery = graphql(`
   query GetHypercertByHypercertId($hypercert_id: String!) {
@@ -8,6 +7,7 @@ export const getHypercertsByHypercertIdQuery = graphql(`
         creator_address
         hypercert_id
         units
+        uri
         contract {
           chain_id
         }
@@ -25,6 +25,7 @@ export const getHypercertsByHypercertIdQuery = graphql(`
           work_timeframe_to
           work_scope
           name
+          properties
         }
       }
     }
@@ -60,6 +61,7 @@ export const hypercertsByCreatorQuery = graphql(`
           contributors
           work_timeframe_from
           work_timeframe_to
+          properties
         }
       }
     }

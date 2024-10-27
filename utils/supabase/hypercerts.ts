@@ -5,7 +5,7 @@ import {getHyperboardsByIdQuery, getHypercertsByHypercertIdQuery,} from "@/graph
 export const fetchHypercerts = async () => {
 	try {
         const res = await request(HYPERCERTS_API_URL, getHyperboardsByIdQuery, {
-            id: "c0e3d5eb-6a19-4856-8e54-d4654dbef7c4",
+            id: "8afa9360-608c-412a-a215-5762ae3beacc",
         });
 		// const hypercertIds = await getHypercertIds();
 		const hypercertIds =

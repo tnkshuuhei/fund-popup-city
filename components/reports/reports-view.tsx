@@ -1,22 +1,19 @@
 "use client";
 import ReportCard from "@/components/reports/report-card";
-import ReportsHeader from "@/components/reports/reports-header";
 import { useFilters } from "@/contexts/filter";
 import { usePagination } from "@/hooks/use-pagination";
 
 import { Button } from "@/components/ui/button";
-import { SupportedChainIdType } from "@/lib/constants";
 import {
 	createFilterOptions,
 	filterReports,
 	sortingOptions,
 } from "@/lib/search-filter-utils";
-import type { Hypercert, HypercertData, ISortingOption, Report } from "@/types";
+import type { Hypercert, HypercertData, ISortingOption } from "@/types";
 import Fuse from "fuse.js";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 import { ShowingDisplay, VDPaginator } from "../global/vd-paginator";
-import { SidebarFilter } from "./filter-sidebar";
 
 export function ReportsView({ hypercerts }: { hypercerts: Hypercert[] }) {
 	const { filters, updateSearchParams } = useFilters();
@@ -121,7 +118,6 @@ export function ReportsView({ hypercerts }: { hypercerts: Hypercert[] }) {
 								name={hypercert.metadata.name}
 								chain_id={hypercert.contract.chain_id}
 								totalUnitsForSale={hypercert.orders.totalUnitsForSale}
-								lowestAvailablePrice={hypercert.orders.lowestAvailablePrice}
 								units={hypercert.units}
 							/>
 						))

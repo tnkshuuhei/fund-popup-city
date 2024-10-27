@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, min } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -83,10 +83,7 @@ const HypercertMintSchema = z.object({
 		.string()
 		.refine(
 			(value) => {
-				// Split the string by ', ' to get individual addresses
 				const addresses = value.split(", ").map((addr) => addr.trim());
-
-				// Check if each address matches the Ethereum address pattern
 				return addresses.every((address) => isValidEthereumAddress(address));
 			},
 			{
@@ -107,6 +104,7 @@ const HypercertMintSchema = z.object({
 		),
 	acceptTerms: z.boolean(),
 	confirmContributorsPermission: z.boolean(),
+	geojson: z.string().optional(),
 });
 
 type MintingFormValues = z.infer<typeof HypercertMintSchema>;
@@ -115,6 +113,7 @@ const HypercertForm = () => {
 	const imageRef = useRef<HTMLDivElement | null>(null);
 	const [badges, setBadges] = useState(["Edge Esmeralda", "Edge City"]);
 	const [openMintDialog, setOpenMintDialog] = useState(false);
+	const [geoJSONFile, setGeoJSONFile] = useState<File | null>(null);
 	const {
 		mintHypercert,
 		mintStatus,
@@ -146,6 +145,7 @@ const HypercertForm = () => {
 			contact: "",
 			acceptTerms: false,
 			confirmContributorsPermission: false,
+			geojson: "",
 		},
 		mode: "onChange",
 	});
@@ -176,11 +176,27 @@ const HypercertForm = () => {
 
 	const onSubmit = useCallback(
 		async (values: MintingFormValues) => {
-			// const image = await exportAsImage(imageRef);
 			const image = await generateImage();
 			if (!image) {
-				// throw Error with toast for user
+				console.error("Failed to generate image");
 				return;
+			}
+
+			let geoJSONData = null;
+			if (values.geojson) {
+				try {
+					const response = await fetch(values.geojson);
+					geoJSONData = await response.json();
+				} catch (error) {
+					console.error("Error fetching GeoJSON:", error);
+				}
+			} else if (geoJSONFile) {
+				try {
+					const text = await geoJSONFile.text();
+					geoJSONData = JSON.parse(text);
+				} catch (error) {
+					console.error("Error parsing GeoJSON file:", error);
+				}
 			}
 
 			const metadata: HypercertMetadata = {
@@ -193,7 +209,12 @@ const HypercertForm = () => {
 			const formattedMetadata = formatHypercertData({
 				...metadata,
 				version: "2.0",
-				properties: [],
+				properties: [
+					{
+						trait_type: "GeoJSON",
+						data: geoJSONData,
+					},
+				],
 				impactScope: ["all"],
 				excludedImpactScope: [],
 				workScope: badges,
@@ -222,13 +243,8 @@ const HypercertForm = () => {
 			});
 			setOpenMintDialog(true);
 		},
-		[badges, mintHypercert, generateImage],
+		[badges, mintHypercert, generateImage, geoJSONFile],
 	);
-
-	const testData = {
-		hypercertId: "0x1",
-		contactInfo: "test@test.com",
-	};
 
 	return (
 		<Dialog open={openMintDialog} onOpenChange={setOpenMintDialog}>
@@ -267,7 +283,6 @@ const HypercertForm = () => {
 													{...field}
 												/>
 											</FormControl>
-
 											<FormMessage />
 										</FormItem>
 									)}
@@ -342,7 +357,7 @@ const HypercertForm = () => {
 												{badges.map((tag, index) => (
 													<Badge
 														key={`${tag}-${
-															// biome-ignore lint/suspicious/noArrayIndexKey: tags are not unique and could be duplicated
+															// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
 															index
 														}`}
 														variant="secondary"
@@ -380,6 +395,7 @@ const HypercertForm = () => {
 															</Button>
 														</FormControl>
 													</PopoverTrigger>
+
 													<PopoverContent className="w-auto p-0" align="start">
 														<Calendar
 															mode="single"
@@ -450,6 +466,40 @@ const HypercertForm = () => {
 													placeholder="0xWalletAddress1, 0xWalletAddress2, ..."
 													{...field}
 												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<FormField
+									control={form.control}
+									name="geojson"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>GeoJSON (URL or File)</FormLabel>
+											<FormControl>
+												<div className="flex gap-2">
+													<Input
+														type="text"
+														placeholder="https://example.com/data.geojson"
+														{...field}
+														onChange={(e) => {
+															field.onChange(e.target.value);
+															setGeoJSONFile(null);
+														}}
+													/>
+													<Input
+														type="file"
+														accept=".geojson,application/geo+json"
+														onChange={(e) => {
+															const file = e.target.files?.[0];
+															if (file) {
+																setGeoJSONFile(file);
+																field.onChange("");
+															}
+														}}
+													/>
+												</div>
 											</FormControl>
 											<FormMessage />
 										</FormItem>

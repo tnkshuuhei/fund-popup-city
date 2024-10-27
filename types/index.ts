@@ -6,7 +6,6 @@ export interface Hypercert {
 		chain_id: SupportedChainIdType;
 	};
 	orders: {
-		lowestAvailablePrice: bigint;
 		totalUnitsForSale: bigint;
 	};
 	metadata: {

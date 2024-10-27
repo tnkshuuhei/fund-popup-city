@@ -1,6 +1,4 @@
-import { SideBar } from "@/components/profile/sidebar";
 import { HypercertForm } from "@/components/submit/hypercert-form";
-import { Card, CardContent } from "@/components/ui/card";
 
 function SubmitPage() {
 	return (

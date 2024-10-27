@@ -1,3 +1,4 @@
+import MapRenderer from "@/components/map-renderer";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -182,11 +183,13 @@ const EvaluationDetails = () => {
 const ReportSidebar = ({
 	metadata,
 	hypercert_id,
-}: { metadata: SidebarData; hypercert_id: string }) => {
+	uri,
+}: { metadata: SidebarData; hypercert_id: string; uri?: string }) => {
 	return (
 		<aside className="flex flex-col gap-4">
 			<ImpactDetails metadata={metadata} hypercert_id={hypercert_id} />
 			<EvaluationDetails />
+			<MapRenderer uri={uri} />
 		</aside>
 	);
 };
