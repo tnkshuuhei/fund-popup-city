@@ -81,7 +81,7 @@ export function ReportsView({ hypercerts }: { hypercerts: Hypercert[] }) {
 
 	return (
 		<section
-			className="flex max-w-screen-xl border-t border-t-stone-300 min-[2560px]:mx-auto min-[2560px]:grid min-[2560px]:w-[64vw] min-[2560px]:grid-cols-[380px_1fr]"
+			className="flex·border-t·border-t-stone-300·min-[2560px]:mx-auto·min-[2560px]:grid·min-[2560px]:w-[64vw]·min-[2560px]:grid-cols-[380px_1fr]"
 			id="discover"
 		>
 			{/* <div className="hidden md:block">
@@ -107,7 +107,7 @@ export function ReportsView({ hypercerts }: { hypercerts: Hypercert[] }) {
 						itemsPerPage={itemsPerPage}
 					/>
 				)}
-				<div className="p-3" />
+
 				<div className="flex flex-wrap items-stretch justify-start gap-3 sm:gap-5">
 					{hypercerts.length ? (
 						hypercerts.map((hypercert: Hypercert) => (

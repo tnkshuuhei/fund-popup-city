@@ -139,7 +139,11 @@ export const StepProcessDialogProvider = ({
 			}}
 		>
 			{children}
-			<StepProcessModal open={open} steps={dialogSteps} title="Test title" />
+			<StepProcessModal
+				open={open}
+				steps={dialogSteps}
+				title="Proceed Transactions"
+			/>
 		</StepProcessDialogContext.Provider>
 	);
 };
