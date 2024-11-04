@@ -45,7 +45,7 @@ async function BuyFraction({ hypercertId }: { hypercertId: string }) {
 	const { unitAmount, maxUnitsToBuy } = parseAdditionalParameters(
 		orders[0].additionalParameters as Address,
 	);
-	// console.log("Orders Data:", data);
+
 	return (
 		<Card className="max-w-[500px] shadow-none">
 			<CardHeader>
