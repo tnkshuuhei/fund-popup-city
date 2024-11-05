@@ -3,9 +3,7 @@ import Link from "next/link";
 
 import MapRenderer from "@/components/map-renderer";
 import BuyFraction from "@/components/marketplace/buy-fraction";
-import FundingHistory, {
-	mockSales,
-} from "@/components/marketplace/funding-history";
+import FundingHistory from "@/components/marketplace/funding-history";
 import ReportSidebar, {
 	type SidebarData,
 } from "@/components/report-details/report-sidebar";
@@ -92,7 +90,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
 									<BuyFraction hypercertId={hypercertId} />
 								</Suspense>
 								<FundingHistory
-									sales={mockSales}
+									sales={sales}
 									creatorAddress={hypercertData.creator_address as string}
 								/>
 							</section>
