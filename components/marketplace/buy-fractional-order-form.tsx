@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useBuyFractionalMakerAsk } from "@/marketplace/hooks";
 import type { MarketplaceOrder } from "@/marketplace/types";
+import { getCurrencyByAddress } from "@/marketplace/utils";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { formatEther } from "viem";
@@ -27,12 +28,15 @@ export const BuyFractionalOrderForm = ({
 }) => {
 	const form = useForm<BuyFractionalOrderFormValues>({
 		defaultValues: {
-			unitAmount: "20",
+			unitAmount: "0",
 			pricePerUnit: formatEther(BigInt(order.price)),
 		},
 	});
 
 	const { mutateAsync: buyFractionalMakerAsk } = useBuyFractionalMakerAsk();
+
+	const currency = getCurrencyByAddress(order.chainId, order.currency);
+	console.log("Currency:", currency);
 
 	const onSubmit = async (values: BuyFractionalOrderFormValues) => {
 		await buyFractionalMakerAsk({
@@ -42,6 +46,10 @@ export const BuyFractionalOrderForm = ({
 		});
 		onCompleted?.();
 	};
+
+	const unitAmount = form.watch("unitAmount");
+	const pricePerUnit = form.watch("pricePerUnit");
+	const totalPrice = Number(unitAmount) * Number(pricePerUnit);
 
 	return (
 		<Form {...form}>
@@ -68,6 +76,8 @@ export const BuyFractionalOrderForm = ({
 					</FormItem>
 				)}
 			/>
+
+			<span>{`Total price: ${totalPrice} ${currency?.symbol}`}</span>
 
 			<Button
 				variant={"outline"}

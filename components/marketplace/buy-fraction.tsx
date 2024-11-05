@@ -11,6 +11,7 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { truncateEthereumAddress } from "@/lib/utils";
 import { getOpenOrders } from "@/marketplace/getOpenOrders";
+import { getCurrencyByAddress } from "@/marketplace/utils";
 import React from "react";
 import type { Address } from "viem";
 import { decodeAbiParameters, formatEther, parseAbiParameters } from "viem";
@@ -27,9 +28,13 @@ const parseAdditionalParameters = (additionalParameters: Address) => {
 };
 
 async function BuyFraction({ hypercertId }: { hypercertId: string }) {
-	const orders = await getOpenOrders(hypercertId);
-	console.log("Orders Data:", orders);
-	if (!orders || orders.length === 0) {
+	const allOrders = await getOpenOrders(hypercertId);
+	console.log("All Orders Data:", allOrders);
+
+	const validOrders = allOrders?.filter((order) => !order.invalidated) || [];
+	console.log("Valid Orders:", validOrders);
+
+	if (!validOrders || validOrders.length === 0) {
 		return (
 			<Card className="bg-gray-100 shadow-none">
 				<CardHeader>
@@ -43,14 +48,18 @@ async function BuyFraction({ hypercertId }: { hypercertId: string }) {
 	}
 
 	const { unitAmount, maxUnitsToBuy } = parseAdditionalParameters(
-		orders[0].additionalParameters as Address,
+		validOrders[0].additionalParameters as Address,
 	);
-
+	const currency = getCurrencyByAddress(
+		validOrders[0].chainId,
+		validOrders[0].currency,
+	);
+	console.log("Currency:", currency);
 	return (
 		<Card className="max-w-[500px] shadow-none">
 			<CardHeader>
 				<CardTitle className="text-zinc-500">
-					Sold by: {truncateEthereumAddress(orders[0].signer as Address)}
+					Sold by: {truncateEthereumAddress(validOrders[0].signer as Address)}
 				</CardTitle>
 				<CardDescription>
 					To support this contribution, buy a fraction of the hypercert.
@@ -68,7 +77,7 @@ async function BuyFraction({ hypercertId }: { hypercertId: string }) {
 				<div className="flex flex-col items-center justify-between">
 					<p className="font-bold text-sm">Price per unit</p>
 					<data className="text-xs">
-						{formatEther(BigInt(orders[0].price))} ETH
+						{formatEther(BigInt(validOrders[0].price))} {currency?.symbol}
 					</data>
 				</div>
 			</CardContent>
@@ -77,10 +86,9 @@ async function BuyFraction({ hypercertId }: { hypercertId: string }) {
 					<DialogTrigger asChild>
 						<Button className="w-28">Buy</Button>
 					</DialogTrigger>
-					<BuyFractionDialog selectedOrder={orders[0]} />
+					<BuyFractionDialog selectedOrder={validOrders[0]} />
 				</Dialog>
 			</CardFooter>
-			{/* <SupportReport hypercertId={hypercertId} image={image} title={name} /> */}
 		</Card>
 	);
 }
