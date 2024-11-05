@@ -16,7 +16,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://app.voicedeck.org/"),
+	metadataBase: new URL("https://fund-popup-city.vercel.app/"),
 	title: { default: siteConfig.name, template: "%s | Edge Esmeralda" },
 	description: siteConfig.description,
 	icons: [
