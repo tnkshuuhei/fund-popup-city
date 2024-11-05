@@ -16,8 +16,6 @@ export const fetchCache = "force-no-store";
 export default async function ReportsPage() {
 	const hypercertsId = process.env.NEXT_PUBLIC_COLLECTION_ID as string;
 	const { data, error } = await fetchHypercerts(hypercertsId);
-	console.log("Hypercerts data:", data);
-	console.log("Hypercerts error:", error);
 
 	return (
 		<main className="flex flex-col gap-4 pb-[64px] md:pb-0">
