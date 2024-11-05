@@ -3,11 +3,14 @@ import Link from "next/link";
 
 import MapRenderer from "@/components/map-renderer";
 import BuyFraction from "@/components/marketplace/buy-fraction";
+import FundingHistory from "@/components/marketplace/funding-history";
 import ReportSidebar, {
 	type SidebarData,
 } from "@/components/report-details/report-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { getHypercertByHypercertId } from "@/hypercerts/getHypercertByHypercertId";
+import { getSalesByHypercertId } from "@/hypercerts/getSalesByHypercertId";
+import type { Sales } from "@/marketplace/types";
 import { ChevronLeft } from "lucide-react";
 import { Suspense } from "react";
 
@@ -18,6 +21,7 @@ interface ReportPageProps {
 export default async function ReportPage({ params }: ReportPageProps) {
 	const { hypercertId } = params;
 	const hypercertData = await getHypercertByHypercertId(hypercertId);
+	const sales: Sales[] = await getSalesByHypercertId(hypercertId);
 
 	if (hypercertData instanceof Error) {
 		return <div>No hypercert found</div>;
@@ -85,6 +89,10 @@ export default async function ReportPage({ params }: ReportPageProps) {
 								<Suspense fallback={<div>Loading...</div>}>
 									<BuyFraction hypercertId={hypercertId} />
 								</Suspense>
+								<FundingHistory
+									sales={sales}
+									creatorAddress={hypercertData.creator_address as string}
+								/>
 							</section>
 							{hypercertData.metadata && (
 								<div>
