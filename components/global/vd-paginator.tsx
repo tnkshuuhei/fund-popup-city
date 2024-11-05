@@ -1,139 +1,134 @@
 "use client";
 import { buttonVariants } from "@/components/ui/button";
 import {
-	Pagination,
-	PaginationContent,
-	PaginationItem,
-	PaginationLink,
-	PaginationNext,
-	PaginationPrevious,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
 } from "@/components/ui/pagination";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import {
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface IShowingDisplay {
-	currentPage: number;
-	totalItemAmount: number;
-	itemsPerPage: number;
+  currentPage: number;
+  totalItemAmount: number;
+  itemsPerPage: number;
 }
 
-const ShowingDisplay = ({
-	currentPage,
-	totalItemAmount,
-	itemsPerPage,
-}: IShowingDisplay) => {
-	if (totalItemAmount === 0) {
-		return null;
-	}
-	if (totalItemAmount === 1) {
-		return <p className="text-sm md:text-base">Showing 1 item</p>;
-	}
-	return (
-		<p className="text-sm md:text-base">
-			Showing {(currentPage - 1) * itemsPerPage + 1} -{" "}
-			{currentPage * itemsPerPage > totalItemAmount
-				? totalItemAmount
-				: currentPage * itemsPerPage}{" "}
-			of {totalItemAmount} items
-		</p>
-	);
-};
-
-const calculatePaginationRange = (
-	currentPage: number,
-	maxPage: number,
-	maxPagesInPagination: number,
-) => {
-	// Ensure we don't exceed the maxPage limit
-	const totalPages = Math.min(maxPage, maxPagesInPagination);
-
-	// Calculate the start page
-	let startPage = Math.max(currentPage - Math.floor(totalPages / 2), 1);
-	let endPage = startPage + totalPages - 1;
-
-	// Adjust if endPage goes beyond maxPage
-	if (endPage > maxPage) {
-		endPage = maxPage;
-		// Adjust startPage to ensure we always show the same number of pages
-		startPage = Math.max(1, endPage - totalPages + 1);
-	}
-
-	// Generate the range of page numbers
-	return Array.from(
-		{ length: endPage - startPage + 1 },
-		(_, index) => startPage + index,
-	);
-};
-
 interface IVDPaginator {
-	needsPagination: boolean;
-	currentPage: number;
-	maxPage: number;
-	loadPage: (pageNum: number) => void;
+  needsPagination: boolean;
+  currentPage: number;
+  maxPage: number;
+  loadPage: (pageNum: number) => void;
 }
 
 const VDPaginator = ({
-	needsPagination,
-	currentPage,
-	maxPage,
-	loadPage,
+  needsPagination,
+  currentPage,
+  maxPage,
+  loadPage,
 }: IVDPaginator) => {
-	const isDesktop = useMediaQuery("(min-width: 768px)");
-	const maxPagesInPagination = isDesktop ? 7 : 3;
-	if (!needsPagination) {
-		return null;
-	}
+  if (!needsPagination) {
+    return null;
+  }
 
-	const pagesInPagination = calculatePaginationRange(
-		currentPage,
-		maxPage,
-		maxPagesInPagination,
-	);
+  return (
+    <div className="flex flex-col items-center space-y-2">
+      <p className="text-sm text-muted-foreground">
+        Page {currentPage} of {maxPage}
+      </p>
 
-	return (
-		<Pagination className="pt-6">
-			<PaginationContent>
-				<PaginationItem className="hover:cursor-pointer">
-					<PaginationPrevious
-						onClick={() => (currentPage > 1 ? loadPage(currentPage - 1) : null)}
-						className={cn(
-							buttonVariants({ variant: "secondary", size: "sm" }),
-							"bg-vd-beige-300 hover:bg-vd-beige-400",
-							currentPage === 1
-								? "cursor-not-allowed opacity-50 hover:bg-initial focus:bg-none"
-								: "",
-						)}
-					/>
-				</PaginationItem>
+      <Pagination>
+        <PaginationContent className="gap-2">
+          <PaginationItem>
+            <button
+              onClick={() => loadPage(1)}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "icon" }),
+                "h-8 w-8",
+                currentPage === 1 ? "pointer-events-none opacity-50" : ""
+              )}
+              disabled={currentPage === 1}
+              aria-label="Go to first page"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+          </PaginationItem>
 
-				{pagesInPagination.map((pageNum, index) => (
-					<PaginationItem
-						onClick={() => loadPage(pageNum)}
-						className="hover:cursor-pointer"
-						key={`page-${pageNum}`}
-					>
-						<PaginationLink isActive={currentPage === pageNum}>
-							{pageNum}
-						</PaginationLink>
-					</PaginationItem>
-				))}
-				<PaginationItem className="hover:cursor-pointer">
-					<PaginationNext
-						onClick={() =>
-							currentPage < maxPage ? loadPage(currentPage + 1) : null
-						}
-						className={cn(
-							buttonVariants({ variant: "secondary", size: "sm" }),
-							"bg-vd-beige-300 hover:bg-vd-beige-400",
-							currentPage === maxPage
-								? "cursor-not-allowed opacity-50 hover:bg-initial focus:bg-none"
-								: "",
-						)}
-					/>
-				</PaginationItem>
-			</PaginationContent>
-		</Pagination>
-	);
+          <PaginationItem>
+            <button
+              onClick={() => loadPage(currentPage - 1)}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "icon" }),
+                "h-8 w-8",
+                currentPage === 1 ? "pointer-events-none opacity-50" : ""
+              )}
+              disabled={currentPage === 1}
+              aria-label="Go to previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          </PaginationItem>
+
+          <PaginationItem>
+            <button
+              onClick={() => loadPage(currentPage + 1)}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "icon" }),
+                "h-8 w-8",
+                currentPage === maxPage ? "pointer-events-none opacity-50" : ""
+              )}
+              disabled={currentPage === maxPage}
+              aria-label="Go to next page"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </PaginationItem>
+
+          <PaginationItem>
+            <button
+              onClick={() => loadPage(maxPage)}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "icon" }),
+                "h-8 w-8",
+                currentPage === maxPage ? "pointer-events-none opacity-50" : ""
+              )}
+              disabled={currentPage === maxPage}
+              aria-label="Go to last page"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </button>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    </div>
+  );
+};
+
+const ShowingDisplay = ({
+  currentPage,
+  totalItemAmount,
+  itemsPerPage,
+}: IShowingDisplay) => {
+  if (totalItemAmount === 0) {
+    return null;
+  }
+  if (totalItemAmount === 1) {
+    return <p className="text-sm text-muted-foreground">Showing 1 item</p>;
+  }
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, totalItemAmount);
+
+  return (
+    <p className="text-sm text-muted-foreground">
+      Showing {start} - {end} of {totalItemAmount} items
+    </p>
+  );
 };
 
 export { ShowingDisplay, VDPaginator };
