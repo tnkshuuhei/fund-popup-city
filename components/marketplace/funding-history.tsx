@@ -37,28 +37,28 @@ export default function FundingHistory({
 					{filteredSales.map((sale) => (
 						<div
 							key={sale.id}
-							className="flex·flex-col·space-y-2·rounded-lg·border·border-slate-200·p-4·transition-colors·hover:bg-slate-50"
+							className="flex flex-col space-y-2 rounded-lg border border-slate-200 p-4 transition-colors hover:bg-slate-50"
 						>
 							<div className="flex flex-row items-center justify-between">
 								<div className="flex flex-row items-center gap-2">
-									<span className="text-slate-500·text-sm">
+									<span className="text-slate-500 text-sm">
 										{truncateEthereumAddress(sale.buyer as `0x${string}`)}
 									</span>
-									<span className="text-slate-500·text-sm">bought</span>
-									<span className="text-slate-500·text-sm">
+									<span className="text-slate-500 text-sm">bought</span>
+									<span className="text-slate-500 text-sm">
 										<FormattedUnits>
 											{sale.amounts && (sale.amounts[0] as number)}
 										</FormattedUnits>
 									</span>
 								</div>
-								<span className="text-slate-600·text-sm">
+								<span className="text-slate-600 text-sm">
 									{formatDate(sale.creation_block_timestamp as string)}
 								</span>
 							</div>
 						</div>
 					))}
 					{filteredSales.length === 0 && (
-						<div className="py-4·text-center·text-slate-500">
+						<div className="py-4 text-center text-slate-500">
 							No funding history found
 						</div>
 					)}
