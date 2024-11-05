@@ -109,8 +109,8 @@ export function ReportsView({ hypercerts }: { hypercerts: Hypercert[] }) {
 				)}
 
 				<div className="flex flex-wrap items-stretch justify-start gap-3 sm:gap-5">
-					{hypercerts.length ? (
-						hypercerts.map((hypercert: Hypercert) => (
+					{filteredReports.length ? (
+						pageTransactions.map((hypercert: Hypercert) => (
 							<ReportCard
 								key={hypercert.hypercert_id}
 								hypercert_id={hypercert.hypercert_id}
