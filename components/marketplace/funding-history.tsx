@@ -1,32 +1,21 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePagination } from "@/hooks/use-pagination";
-import { truncateEthereumAddress } from "@/lib/utils";
 import type { Sales } from "@/marketplace/types";
 import { ShowingDisplay, VDPaginator } from "../global/vd-paginator";
 import { FormattedUnits } from "./formatted-units";
-import EthAddress from "../eth-address";
+import { truncateEthereumAddress } from "@/lib/utils";
 
-export default function FundingHistory({
-  sales,
-  creatorAddress,
-}: {
-  sales: Sales[];
-  creatorAddress: string;
-}) {
-  const filteredSales = sales.filter(
-    (sale) => sale.seller.toLowerCase() === creatorAddress
-  );
-  console.log("filteredSales", filteredSales);
-
+export default function FundingHistory({ sales }: { sales: Sales[] }) {
   const itemsPerPage = 5;
+
   const {
     currentPage,
     currentPageItems: pageSales,
     loadPage,
     maxPage,
     needsPagination,
-  } = usePagination<Sales>(filteredSales, itemsPerPage);
+  } = usePagination<Sales>(sales, itemsPerPage);
 
   const formatDate = (timestamp: string) => {
     const date = new Date(Number(timestamp) * 1000);
@@ -38,16 +27,19 @@ export default function FundingHistory({
       minute: "2-digit",
     });
   };
+
   return (
     <Card className="mt-6">
-      <CardHeader>
-        <CardTitle className="line-clamp-none font-semibold text-xl leading-none tracking-tight">
-          Funding history
-        </CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="space-y-1">
+          <CardTitle className="line-clamp-none font-semibold text-xl leading-none tracking-tight">
+            Funding history
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {filteredSales.length === 0 ? (
+          {sales.length === 0 ? (
             <div className="py-4 text-center text-slate-500">
               No funding history found
             </div>
@@ -60,10 +52,7 @@ export default function FundingHistory({
                 <div className="flex flex-row items-center justify-between">
                   <div className="flex flex-row items-center gap-2">
                     <span className="text-slate-500 text-sm">
-                      {EthAddress({
-                        address: sale.buyer,
-                        showEnsName: true,
-                      })}
+                      {truncateEthereumAddress(sale.buyer as `0x${string}`)}
                     </span>
                     <span className="text-slate-500 text-sm">bought</span>
                     <span className="text-slate-500 text-sm">
@@ -90,7 +79,7 @@ export default function FundingHistory({
           />
           <ShowingDisplay
             currentPage={currentPage}
-            totalItemAmount={filteredSales.length}
+            totalItemAmount={sales.length}
             itemsPerPage={itemsPerPage}
           />
         </section>

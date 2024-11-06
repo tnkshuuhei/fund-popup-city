@@ -98,6 +98,8 @@ export const getFractionsByOwnerQuery = graphql(`
     }
   }
 `);
+
+// TODO: fix pagination issue
 export const salesByHypercertId = graphql(`
   query MyQuery($hypercert_id: String) {
     sales(first: 5, where: { hypercert_id: { eq: $hypercert_id } }) {
