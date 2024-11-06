@@ -3,11 +3,15 @@ import Link from "next/link";
 
 import MapRenderer from "@/components/map-renderer";
 import BuyFraction from "@/components/marketplace/buy-fraction";
+import { TotalFundingDisplay } from "@/components/marketplace/funding-display";
+import FundingHistory from "@/components/marketplace/funding-history";
 import ReportSidebar, {
 	type SidebarData,
 } from "@/components/report-details/report-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { getHypercertByHypercertId } from "@/hypercerts/getHypercertByHypercertId";
+import { getSalesByHypercertId } from "@/hypercerts/getSalesByHypercertId";
+import type { Sales } from "@/marketplace/types";
 import { ChevronLeft } from "lucide-react";
 import { Suspense } from "react";
 
@@ -18,6 +22,15 @@ interface ReportPageProps {
 export default async function ReportPage({ params }: ReportPageProps) {
 	const { hypercertId } = params;
 	const hypercertData = await getHypercertByHypercertId(hypercertId);
+	const sales: Sales[] = await getSalesByHypercertId(hypercertId);
+	let filteredSales: Sales[] | [] = [];
+
+	if (!(hypercertData instanceof Error)) {
+		filteredSales = sales.filter(
+			(sale) =>
+				sale.seller.toLowerCase() === (hypercertData.creator_address as string),
+		);
+	}
 
 	if (hypercertData instanceof Error) {
 		return <div>No hypercert found</div>;
@@ -26,8 +39,6 @@ export default async function ReportPage({ params }: ReportPageProps) {
 	if (!hypercertData || !hypercertData.metadata) {
 		return <div>No hypercert data found</div>;
 	}
-
-	console.log("report", hypercertData);
 
 	return (
 		<main className="flex h-svh flex-col justify-between pt-6 md:h-fit md:px-12">
@@ -58,9 +69,22 @@ export default async function ReportPage({ params }: ReportPageProps) {
 								</p>
 							</Link>
 
-							<h1 className="font-bold text-3xl tracking-tight md:text-4xl">
-								{hypercertData.metadata.name}
-							</h1>
+							<div className="space-y-2">
+								<h1 className="font-bold text-3xl tracking-tight md:text-4xl">
+									{hypercertData.metadata.name}
+								</h1>
+								<div className="flex items-center space-x-2">
+									<Suspense
+										fallback={
+											<div className="text-muted-foreground text-sm">
+												Calculating total funding...
+											</div>
+										}
+									>
+										<TotalFundingDisplay sales={filteredSales} />
+									</Suspense>
+								</div>
+							</div>
 						</section>
 						<section className="flex flex-col gap-2 pt-2 md:flex-row md:gap-12">
 							<section className="flex flex-col gap-4">
@@ -85,6 +109,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
 								<Suspense fallback={<div>Loading...</div>}>
 									<BuyFraction hypercertId={hypercertId} />
 								</Suspense>
+								<FundingHistory sales={filteredSales} />
 							</section>
 							{hypercertData.metadata && (
 								<div>

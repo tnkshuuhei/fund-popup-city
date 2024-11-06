@@ -19,7 +19,7 @@ import {
 import { useHypercertClient } from "@/hooks/use-hypercerts-client";
 import { useStepProcessDialogContext } from "@/components/global/step-process-dialog";
 import { parseClaimOrFractionId } from "@hypercerts-org/sdk";
-import { isAddress, parseEther } from "viem";
+import { isAddress, parseEther, zeroAddress } from "viem";
 import { readContract, waitForTransactionReceipt } from "viem/actions";
 import {
   CreateFractionalOfferFormValues,
@@ -63,7 +63,7 @@ export const useCreateOrderInSupabase = () => {
         // @ts-ignore
         provider as unknown as Provider,
         // @ts-ignore
-        signer,
+        signer
       );
 
       return hypercertExchangeClient.registerOrder({
@@ -120,7 +120,7 @@ export const useCreateFractionalMakerAsk = ({
       }
 
       const { contractAddress, id: fractionTokenId } = parseClaimOrFractionId(
-        values.fractionId,
+        values.fractionId
       );
 
       if (!contractAddress || !isAddress(contractAddress)) {
@@ -163,7 +163,7 @@ export const useCreateFractionalMakerAsk = ({
         // @ts-ignore
         provider as unknown as Provider,
         // @ts-ignore
-        signer,
+        signer
       );
 
       const { maker, isCollectionApproved, isTransferManagerApproved } =
@@ -193,7 +193,7 @@ export const useCreateFractionalMakerAsk = ({
       // Approve the collection items to be transferred by the TransferManager
       if (!isCollectionApproved) {
         const tx = await hypercertExchangeClient.approveAllCollectionItems(
-          maker.collection,
+          maker.collection
         );
         await waitForTransactionReceipt(walletClientData, {
           hash: tx.hash as `0x${string}`,
@@ -329,29 +329,31 @@ export const useBuyFractionalMakerAsk = () => {
         chainId,
         // @ts-ignore
         provider,
-        signer,
+        signer
       );
       setStep("Setting up order execution");
       const takerOrder = hypercertExchangeClient.createFractionalSaleTakerBid(
         order,
         address,
         unitAmount,
-        parseEther(pricePerUnit),
+        parseEther(pricePerUnit)
       );
-
+      setStep("Setting up order execution");
       try {
         setStep("ERC20");
-        const currentAllowance = await getCurrentERC20Allowance(
-          order.currency as `0x${string}`,
-        );
-        if (currentAllowance < BigInt(order.price) * BigInt(unitAmount)) {
-          const approveTx = await hypercertExchangeClient.approveErc20(
-            order.currency,
-            BigInt(order.price) * BigInt(unitAmount),
+        if (order.currency !== zeroAddress) {
+          const currentAllowance = await getCurrentERC20Allowance(
+            order.currency as `0x${string}`
           );
-          await waitForTransactionReceipt(walletClientData, {
-            hash: approveTx.hash as `0x${string}`,
-          });
+          if (currentAllowance < BigInt(order.price) * BigInt(unitAmount)) {
+            const approveTx = await hypercertExchangeClient.approveErc20(
+              order.currency,
+              BigInt(order.price) * BigInt(unitAmount)
+            );
+            await waitForTransactionReceipt(walletClientData, {
+              hash: approveTx.hash as `0x${string}`,
+            });
+          }
         }
 
         setStep("Transfer manager");
@@ -371,12 +373,19 @@ export const useBuyFractionalMakerAsk = () => {
         throw new Error("Approval error");
       }
 
+      const totalPrice = BigInt(order.price) * BigInt(unitAmount);
+
       try {
         setStep("Setting up order execution");
+        const overrides =
+          order.currency === zeroAddress ? { value: totalPrice } : undefined;
+
         const { call } = hypercertExchangeClient.executeOrder(
           order,
           takerOrder,
           order.signature,
+          undefined,
+          overrides
         );
         setStep("Awaiting buy signature");
         const tx = await call();

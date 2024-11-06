@@ -4,6 +4,7 @@ import EdgeEsmeralda from "@/assets/EdgeEsmeralda.svg";
 import hero from "@/assets/EdgeEsmeraldaHero.webp";
 import noReportsImage from "@/assets/history-bg.svg";
 
+import { HyperboardWidget } from "@/components/hyperboard/hyperboardWidget";
 import { ReportsView } from "@/components/reports/reports-view";
 import { siteConfig } from "@/config/site";
 import { FilterProvider } from "@/contexts/filter";
@@ -13,9 +14,8 @@ import { fetchHypercerts } from "@/utils/supabase/hypercerts";
 export const fetchCache = "force-no-store";
 
 export default async function ReportsPage() {
-	const { data, error } = await fetchHypercerts();
-	console.log("Hypercerts data:", data);
-	console.log("Hypercerts error:", error);
+	const hypercertsId = process.env.NEXT_PUBLIC_COLLECTION_ID as string;
+	const { data, error } = await fetchHypercerts(hypercertsId);
 
 	return (
 		<main className="flex flex-col gap-4 pb-[64px] md:pb-0">
@@ -42,6 +42,9 @@ export default async function ReportsPage() {
 					numOfContributors={numOfContributors}
 					reports={uniqueReports}
 				/> */}
+			</section>
+			<section>
+				<HyperboardWidget hyperboardId={hypercertsId} showTable={true} />
 			</section>
 
 			{data?.length ? (

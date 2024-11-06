@@ -6,6 +6,7 @@ import "./globals.css";
 
 import { cookieToInitialState } from "wagmi";
 
+import CardBanner from "@/assets/CardBanner.webp";
 import { Footer } from "@/components/global/footer";
 import { NavMenu } from "@/components/global/nav-menu";
 import { siteConfig } from "@/config/site";
@@ -15,7 +16,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://app.voicedeck.org/"),
+	metadataBase: new URL("https://fund-popup-city.vercel.app/"),
 	title: { default: siteConfig.name, template: "%s | Edge Esmeralda" },
 	description: siteConfig.description,
 	icons: [
@@ -36,14 +37,14 @@ export const metadata: Metadata = {
 		title: { default: "Edge Esmeralda", template: "%s | Edge Esmeralda" },
 		description: siteConfig.description,
 		type: "website",
-		images: [{ url: "/opengraph-image.png", alt: "Edge Esmeralda" }],
+		images: [{ url: CardBanner.src, alt: "Edge Esmeralda" }],
 	},
 	twitter: {
 		card: "summary_large_image",
 		site: "@edge-esmeralda",
 		title: { default: "Edge Esmeralda", template: "%s | Edge Esmeralda" },
 		description: siteConfig.description,
-		images: [{ url: "/opengraph-image.png", alt: "Edge Esmeralda" }],
+		images: [{ url: CardBanner.src, alt: "Edge Esmeralda" }],
 	},
 };
 
